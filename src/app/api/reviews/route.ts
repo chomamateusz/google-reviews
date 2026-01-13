@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFormattedReviews } from '@/lib/gbp-api';
+import { getPlacesReviews } from '@/lib/places-api';
 import { getCachedReviews, setCachedReviews } from '@/lib/cache';
 import { ReviewsApiResponse } from '@/lib/types';
 
@@ -43,19 +44,48 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Determine which API to use
+  const hasGbpConfig = process.env.GBP_ACCOUNT_ID && process.env.GBP_LOCATION_ID;
+  const hasPlacesConfig = process.env.GOOGLE_PLACES_API_KEY && process.env.GOOGLE_PLACE_ID;
+
   try {
-    const { reviews, totalCount, averageRating } = await getFormattedReviews();
+    let reviews;
+    let totalCount;
+    let averageRating;
+    let businessName = 'CodeRoad - Kurs JavaScript Online';
+    let source: 'google-business-profile' | 'google-places-api' = 'google-business-profile';
+
+    if (hasGbpConfig) {
+      // Use Google Business Profile API (all reviews)
+      const result = await getFormattedReviews();
+      reviews = result.reviews;
+      totalCount = result.totalCount;
+      averageRating = result.averageRating;
+      source = 'google-business-profile';
+    } else if (hasPlacesConfig) {
+      // Fallback to Google Places API (max 5 reviews)
+      const result = await getPlacesReviews(process.env.GOOGLE_PLACE_ID!);
+      reviews = result.reviews;
+      totalCount = result.totalCount;
+      averageRating = result.averageRating;
+      businessName = result.businessName;
+      source = 'google-places-api';
+    } else {
+      throw new Error(
+        'No API configured. Set either GBP_ACCOUNT_ID + GBP_LOCATION_ID (for all reviews) or GOOGLE_PLACES_API_KEY + GOOGLE_PLACE_ID (for max 5 reviews).'
+      );
+    }
 
     const response: ReviewsApiResponse = {
       success: true,
       business: {
-        name: 'CodeRoad - Kurs JavaScript Online',
+        name: businessName,
         rating: averageRating,
         totalReviews: totalCount,
       },
       reviews,
       cachedAt: new Date().toISOString(),
-      source: 'google-business-profile',
+      source,
     };
 
     // Cache the response

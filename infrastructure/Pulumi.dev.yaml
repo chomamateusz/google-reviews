@@ -1,0 +1,6 @@
+config:
+  gcp:project: arctic-surf-475020-g4
+  gcp:region: europe-central2
+  # Add your email for OAuth consent screen (owner/manager of your Google Business Profile)
+  # google-reviews-infra:supportEmail: your-email@example.com
+encryptionsalt: v1:bbOEUIZL9u4=:v1:TDXBu7W6sikiuWjX:1jCFYN9bulXaLRuScyZ4wCJXBqNJlg==

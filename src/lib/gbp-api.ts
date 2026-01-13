@@ -9,8 +9,8 @@ import {
   getRelativeTime,
 } from './types';
 
-const GBP_API_BASE = 'https://mybusinessaccountmanagement.googleapis.com/v1';
-const GBP_REVIEWS_API_BASE = 'https://mybusiness.googleapis.com/v4';
+// Using v4 API for everything since user has quota for mybusiness.googleapis.com
+const GBP_API_BASE = 'https://mybusiness.googleapis.com/v4';
 
 async function fetchWithAuth(url: string): Promise<Response> {
   const accessToken = await getValidAccessToken();
@@ -26,6 +26,7 @@ async function fetchWithAuth(url: string): Promise<Response> {
 }
 
 export async function listAccounts(): Promise<GBPAccount[]> {
+  // Using v4 API endpoint
   const response = await fetchWithAuth(`${GBP_API_BASE}/accounts`);
 
   if (!response.ok) {
@@ -38,9 +39,8 @@ export async function listAccounts(): Promise<GBPAccount[]> {
 }
 
 export async function listLocations(accountId: string): Promise<GBPLocation[]> {
-  // The Business Information API uses a different base URL
-  const url = `https://mybusinessbusinessinformation.googleapis.com/v1/accounts/${accountId}/locations`;
-  const response = await fetchWithAuth(url);
+  // Using v4 API endpoint
+  const response = await fetchWithAuth(`${GBP_API_BASE}/accounts/${accountId}/locations`);
 
   if (!response.ok) {
     const error = await response.text();
@@ -57,7 +57,7 @@ export async function listReviews(
   pageSize: number = 50,
   pageToken?: string
 ): Promise<GoogleReviewsResponse> {
-  let url = `${GBP_REVIEWS_API_BASE}/accounts/${accountId}/locations/${locationId}/reviews?pageSize=${pageSize}`;
+  let url = `${GBP_API_BASE}/accounts/${accountId}/locations/${locationId}/reviews?pageSize=${pageSize}`;
 
   if (pageToken) {
     url += `&pageToken=${pageToken}`;

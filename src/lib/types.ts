@@ -55,7 +55,7 @@ export interface ReviewsApiResponse {
   };
   reviews: Review[];
   cachedAt: string;
-  source: 'google-business-profile';
+  source: 'google-business-profile' | 'google-places-api';
   error?: string;
 }
 

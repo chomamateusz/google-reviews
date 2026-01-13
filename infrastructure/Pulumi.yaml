@@ -1,0 +1,10 @@
+name: google-reviews-infra
+runtime:
+  name: nodejs
+  options:
+    typescript: true
+description: Google Reviews Widget Infrastructure
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: gcp-typescript

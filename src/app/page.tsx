@@ -2,10 +2,20 @@ import Script from 'next/script';
 
 export default function Home() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  
+  // GBP API config
   const hasRefreshToken = !!process.env.GOOGLE_REFRESH_TOKEN;
   const hasAccountId = !!process.env.GBP_ACCOUNT_ID;
   const hasLocationId = !!process.env.GBP_LOCATION_ID;
-  const isConfigured = hasRefreshToken && hasAccountId && hasLocationId;
+  const isGbpConfigured = hasRefreshToken && hasAccountId && hasLocationId;
+  
+  // Places API config (fallback)
+  const hasPlacesApiKey = !!process.env.GOOGLE_PLACES_API_KEY;
+  const hasPlaceId = !!process.env.GOOGLE_PLACE_ID;
+  const isPlacesConfigured = hasPlacesApiKey && hasPlaceId;
+  
+  // Either API works
+  const isConfigured = isGbpConfigured || isPlacesConfigured;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -22,22 +32,54 @@ export default function Home() {
         {/* Setup Status */}
         <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Setup Status</h2>
-          <div className="space-y-3">
-            <StatusItem
-              label="OAuth Token"
-              configured={hasRefreshToken}
-              help={hasRefreshToken ? 'Configured' : 'Visit /api/auth to authorize'}
-            />
-            <StatusItem
-              label="Account ID"
-              configured={hasAccountId}
-              help={hasAccountId ? 'Configured' : 'Visit /api/accounts to find your ID'}
-            />
-            <StatusItem
-              label="Location ID"
-              configured={hasLocationId}
-              help={hasLocationId ? 'Configured' : 'Visit /api/locations to find your ID'}
-            />
+          
+          {/* GBP API Status */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
+              Option 1: Google Business Profile API (All Reviews)
+            </h3>
+            <div className="space-y-3 pl-4 border-l-2 border-blue-200">
+              <StatusItem
+                label="OAuth Token"
+                configured={hasRefreshToken}
+                help={hasRefreshToken ? 'Configured' : 'Visit /api/auth to authorize'}
+              />
+              <StatusItem
+                label="Account ID"
+                configured={hasAccountId}
+                help={hasAccountId ? 'Configured' : 'Visit /api/accounts to find your ID'}
+              />
+              <StatusItem
+                label="Location ID"
+                configured={hasLocationId}
+                help={hasLocationId ? 'Configured' : 'Visit /api/locations to find your ID'}
+              />
+            </div>
+            {isGbpConfigured && (
+              <p className="mt-2 text-sm text-green-600 font-medium">✓ GBP API ready - fetches ALL reviews</p>
+            )}
+          </div>
+          
+          {/* Places API Status */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
+              Option 2: Google Places API (Max 5 Reviews)
+            </h3>
+            <div className="space-y-3 pl-4 border-l-2 border-amber-200">
+              <StatusItem
+                label="Places API Key"
+                configured={hasPlacesApiKey}
+                help={hasPlacesApiKey ? 'Configured' : 'Add GOOGLE_PLACES_API_KEY to .env.local'}
+              />
+              <StatusItem
+                label="Place ID"
+                configured={hasPlaceId}
+                help={hasPlaceId ? 'Configured' : 'Add GOOGLE_PLACE_ID to .env.local'}
+              />
+            </div>
+            {isPlacesConfigured && (
+              <p className="mt-2 text-sm text-amber-600 font-medium">✓ Places API ready - fetches max 5 reviews</p>
+            )}
           </div>
         </section>
 
@@ -116,6 +158,52 @@ export default function Home() {
           </ol>
         </section>
 
+        {/* Find Place ID Helper */}
+        <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">🔍 Find Your Place ID</h2>
+          <p className="text-gray-600 mb-4">
+            Need to find your Google Place ID for the Places API? Use these tools:
+          </p>
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h3 className="font-medium text-gray-900 mb-2">Option A: Search Tool</h3>
+              <p className="text-sm text-gray-600 mb-2">
+                Use our search endpoint to find your business:
+              </p>
+              <a
+                href="/api/find-place?q=Your+Business+Name"
+                target="_blank"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                Search for Place ID
+              </a>
+            </div>
+            <div className="p-4 bg-amber-50 rounded-lg">
+              <h3 className="font-medium text-gray-900 mb-2">Option B: Google&apos;s Official Tool</h3>
+              <p className="text-sm text-gray-600 mb-2">
+                Use Google&apos;s Place ID Finder for the most accurate results:
+              </p>
+              <a
+                href="https://developers.google.com/maps/documentation/places/web-service/place-id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm"
+              >
+                Google Place ID Finder ↗
+              </a>
+            </div>
+            <div className="p-4 bg-gray-100 rounded-lg">
+              <h3 className="font-medium text-gray-900 mb-2">⚠️ Important Note</h3>
+              <p className="text-sm text-gray-600">
+                Place IDs can become invalid over time. If you see an error about an invalid Place ID,
+                you&apos;ll need to find the new one using the tools above. Virtual/online businesses
+                without physical addresses may not be findable via the Places API - in that case,
+                you&apos;ll need to wait for the GBP API approval.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Widget Preview */}
         <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Widget Preview</h2>
@@ -160,21 +248,27 @@ export default function Home() {
             Add these to your <code className="bg-gray-100 px-1 rounded">.env.local</code> file:
           </p>
           <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-            <code>{`# Google OAuth credentials (from Google Cloud Console)
+            <code>{`# ===========================================
+# OPTION 1: Google Business Profile API
+# (requires GBP API approval, fetches ALL reviews)
+# ===========================================
 GOOGLE_CLIENT_ID=your_client_id
 GOOGLE_CLIENT_SECRET=your_client_secret
-
-# After completing OAuth flow
 GOOGLE_REFRESH_TOKEN=your_refresh_token
-
-# After finding your account/location IDs
 GBP_ACCOUNT_ID=your_account_id
 GBP_LOCATION_ID=your_location_id
 
-# App URL
-NEXT_PUBLIC_APP_URL=${appUrl}
+# ===========================================
+# OPTION 2: Google Places API (easier setup)
+# (max 5 reviews, no approval needed)
+# ===========================================
+GOOGLE_PLACES_API_KEY=your_api_key
+GOOGLE_PLACE_ID=ChIJZQmmz0xTIkcRuff6k-H65XI
 
-# CORS (your website domain)
+# ===========================================
+# Common settings
+# ===========================================
+NEXT_PUBLIC_APP_URL=${appUrl}
 ALLOWED_ORIGINS=https://coderoad.pl,https://www.coderoad.pl`}</code>
           </pre>
         </section>
