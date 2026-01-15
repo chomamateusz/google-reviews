@@ -9,8 +9,10 @@ import {
   getRelativeTime,
 } from './types';
 
-// Using v4 API for everything since user has quota for mybusiness.googleapis.com
-const GBP_API_BASE = 'https://mybusiness.googleapis.com/v4';
+// Different APIs for different operations
+const ACCOUNT_MGMT_API = 'https://mybusinessaccountmanagement.googleapis.com/v1';
+const BUSINESS_INFO_API = 'https://mybusinessbusinessinformation.googleapis.com/v1';
+const REVIEWS_API = 'https://mybusiness.googleapis.com/v4';
 
 async function fetchWithAuth(url: string): Promise<Response> {
   const accessToken = await getValidAccessToken();
@@ -26,8 +28,8 @@ async function fetchWithAuth(url: string): Promise<Response> {
 }
 
 export async function listAccounts(): Promise<GBPAccount[]> {
-  // Using v4 API endpoint
-  const response = await fetchWithAuth(`${GBP_API_BASE}/accounts`);
+  // Account Management API
+  const response = await fetchWithAuth(`${ACCOUNT_MGMT_API}/accounts`);
 
   if (!response.ok) {
     const error = await response.text();
@@ -39,8 +41,8 @@ export async function listAccounts(): Promise<GBPAccount[]> {
 }
 
 export async function listLocations(accountId: string): Promise<GBPLocation[]> {
-  // Using v4 API endpoint
-  const response = await fetchWithAuth(`${GBP_API_BASE}/accounts/${accountId}/locations`);
+  // Business Information API
+  const response = await fetchWithAuth(`${BUSINESS_INFO_API}/accounts/${accountId}/locations?readMask=name,title,storefrontAddress,websiteUri`);
 
   if (!response.ok) {
     const error = await response.text();
@@ -57,7 +59,7 @@ export async function listReviews(
   pageSize: number = 50,
   pageToken?: string
 ): Promise<GoogleReviewsResponse> {
-  let url = `${GBP_API_BASE}/accounts/${accountId}/locations/${locationId}/reviews?pageSize=${pageSize}`;
+  let url = `${REVIEWS_API}/accounts/${accountId}/locations/${locationId}/reviews?pageSize=${pageSize}`;
 
   if (pageToken) {
     url += `&pageToken=${pageToken}`;
